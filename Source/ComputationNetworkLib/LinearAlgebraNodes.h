@@ -871,18 +871,20 @@ private:
 public:
     virtual void /*ComputationNode::*/ ForwardProp(const FrameRange& fr) override
     {
-        size_t rank = DetermineElementwiseTensorRank();
-        auto output =                                  ValueTensorFor(                         rank, fr);
-        auto input  = TensorView<ElemType>(InputRef(0).ValuePtr(), GetTransposedTensorSliceFor(rank, fr));
-        output.AssignCopyOf(input);
+        //size_t rank = DetermineElementwiseTensorRank();
+        //auto output =                                  ValueTensorFor(                         rank, fr);
+        //auto input  = TensorView<ElemType>(InputRef(0).ValuePtr(), GetTransposedTensorSliceFor(rank, fr));
+        //output.AssignCopyOf(input);
+        Value().AssignValuesOf(InputRef(0).Value());
     }
 
     virtual void /*ComputationNode::*/ BackpropTo(const size_t inputIndex, const FrameRange& fr) override
     {
-        size_t rank = DetermineElementwiseTensorRank();
-        auto outputGradient =                                  GradientTensorFor(                         rank, fr);
-        auto inputGradient  = TensorView<ElemType>(InputRef(0).GradientPtr(), GetTransposedTensorSliceFor(rank, fr));
-        inputGradient.AddCopyOf(outputGradient);
+        //size_t rank = DetermineElementwiseTensorRank();
+        //auto outputGradient =                                  GradientTensorFor(                         rank, fr);
+        //auto inputGradient  = TensorView<ElemType>(InputRef(0).GradientPtr(), GetTransposedTensorSliceFor(rank, fr));
+        //inputGradient.AddCopyOf(outputGradient);
+        InputRef(0).Gradient().AssignValuesOf(Gradient());
     }
 
     virtual bool OutputUsedInComputingInputNodesGradients() const override { return false; }
