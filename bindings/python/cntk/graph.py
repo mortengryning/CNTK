@@ -44,17 +44,40 @@ def depth_first_search(node, visitor):
 
     return accum
 
-def find_by_name(node, node_name):
+def find_functions_by_name(node, node_name):
     '''
-    Finds nodes in the graph starting from `node` and doing a depth-first
+    Finds functions in the graph starting from `node` and doing a depth-first
     search.
+
     Args:
         node (graph node): the node to start the journey from
         node_name (`str`): name for which we are search nodes
+
     Returns:
-        List of nodes having the specified name
+        List of primitive functions having the specified name
     '''
     return depth_first_search(node, lambda x: x.name == node_name)
+
+def find_by_name(node, node_name):
+    '''
+    Finds a function in the graph starting from `node` and doing a depth-first
+    search. It assumes that the name occurs only once.
+
+    Args:
+        node (graph node): the node to start the journey from
+        node_name (`str`): name for which we are search nodes
+
+    Returns:
+        Primitive function having the specified name
+    '''
+    result = depth_first_search(node, lambda x: x.name == node_name)
+    if len(result)>1:
+        raise ValueError('found multiple function. If that was expected '
+                ' call find_functions_by_name')
+    if not result:
+        return None
+
+    return result[0]
 
 def output_function_graph(node,dot_file_path=None,png_file_path=None):
     '''

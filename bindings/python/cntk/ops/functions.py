@@ -1,6 +1,6 @@
 from cntk import cntk_py
 from cntk.device import DeviceDescriptor
-from ..utils import typemap, sanitize_var_map, value_to_seq
+from cntk.utils import typemap, sanitize_var_map, value_to_seq
 from enum import Enum, unique
 import numpy as np
 
@@ -436,26 +436,66 @@ class Function(cntk_py.Function):
         return super(Function, self).replace_placeholder(substitution)
 
     @typemap
-    def find_by_name(self, name):
+    def find_functions_by_name(self, name):
         '''
-        Returns all function with ``name`` in the graph starting from this
-        node. 
+        Returns a list of primitive function with ``name`` in the graph
+        starting from this node. Throws an exceptoin if ``name`` occurs
+        multiple times. If you expect multiple functions to be returned, use
+        :func:`find_functions_by_name`. 
 
         Example:
-            >>> a = C.input_variable(shape=1, name='a')
-            >>> b = C.input_variable(shape=1, name='b')
+            >>> a = C.input_variable(shape=1, name='i')
+            >>> b = C.input_variable(shape=1, name='i')
             >>> c = C.plus(a, b, name='c')
-            >>> found = c.find_by_name('b')
-            >>> [n.name for n in found]
-            ['b']
-            >>> c.find_by_name('huh')
+            >>> len(c.find_functions_by_name('i'))
+            2
+            >>> c.find_functions_by_name('z')
             []
-
+            
         Args:
             name (str): names to look for
 
         Returns:
             list of :class:`Function`s matching ``name``
+
+        See also:
+            :func:`find_by_name`
+        '''
+        from .. import graph
+        return graph.find_functions_by_name(self, name)
+
+    # TODO have a better name for combine() in this case
+    @typemap
+    def find_by_name(self, name):
+        '''
+        Returns a primitive function with ``name`` in the graph starting from
+        this node. Throws an exceptoin if ``name`` occurs multiple times. If
+        you expect multiple functions to be returned, use
+        :func:`find_functions_by_name`.
+
+        Example:
+            >>> a = C.input_variable(shape=1, name='a')
+            >>> b = C.input_variable(shape=1, name='b')
+            >>> c = C.plus(a, b, name='c')
+            >>> c.find_by_name('b').name
+            'b'
+            >>> c.find_by_name('z') is None
+            True
+            
+            If you need a full function out of it that can be evaluated, you
+            need to upcast it (currently done via combine):
+            >>> d = c * 5
+            >>> C.combine([d.find_by_name('c')]).eval({a:[1], b:[2]})
+            array([[[ 3.]]], dtype=float32)
+
+        Args:
+            name (str): names to look for
+
+        Returns:
+            :class:`Function`s matching ``name``
+
+        See also:
+            :func:`find_functions_by_name`
         '''
         from .. import graph
         return graph.find_by_name(self, name)
